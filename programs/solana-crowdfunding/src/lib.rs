@@ -15,15 +15,15 @@ pub mod solana_crowdfunding {
         Ok(())
     }
 
-    pub fn create(ctx: Context<Create>, amount: uint64) -> Result<()> {
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
         let campaign = &mut ctx.accounts.campaign;
         let user = &mut ctx.accounts.user;
-        if admin.account != *user.key {
-            return Err(ProgramError::IncorrectProgramId);
+        if campaign.admin != *user.key {
+            return Err(ProgramError::IncorrectProgramId.into());
         }
         let rent_balance = Rent::get()?.minimum_balance(campaign.to_account_info().data_len());
-        if campaign.to_account_info().lamports_borrow - rent_balance < amount {
-            return Err(ProgramError::InsufficientFunds);
+        if campaign.to_account_info().lamports() - rent_balance < amount {
+            return Err(ProgramError::InsufficientFunds.into());
         }
         **campaign.to_account_info().try_borrow_mut_lamports()? -= amount;
         **user.to_account_info().try_borrow_mut_lamports()? += amount;
@@ -34,10 +34,18 @@ pub mod solana_crowdfunding {
 #[derive(Accounts)]
 pub struct Create<'info> {
     #[account(init, payer=user, space=900, seeds=[b"CAMPAIGN_DEMO".as_ref(), user.key().as_ref()], bump)]
-    pub campaign: Account<'info, Calculator>,
+    pub campaign: Account<'info, Campaign>,
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    #[account(mut)]
+    pub campaign: Account<'info, Campaign>,
+    #[account(mut)]
+    pub user: Signer<'info>
 }
 
 #[account]

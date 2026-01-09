@@ -12,7 +12,7 @@ solana_crowdfunding = "2K1ddAKsCZKq9eXqL6xu64wtBJPCa4bzRQr547aw5wCo"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
